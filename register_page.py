@@ -1,0 +1,143 @@
+# register_page.py
+# import streamlit as st
+# from datetime import date, datetime
+# from pymongo import MongoClient
+# from css_style import load_css
+# import bcrypt
+# import time
+# from bson import ObjectId
+import streamlit as st
+from datetime import datetime
+from database.mongodb import get_collection
+from services.auth_service import hash_password
+from services.bmi_service import calculate_bmi, classify_bmi
+
+
+class RegisterPage:
+    def __init__(self):
+        # Inisialisasi session state untuk register
+        st.session_state.setdefault("show_register", False)
+    
+    # def _save_registration_to_db(self, data):
+    #     try:
+    #         client = get_mongo_client()
+    #         db = client['tugasakhir']
+    #         collection = db['users']
+            
+    #         # Cek apakah nomor_identitas sudah ada
+    #         existing_user = collection.find_one({"nomor_identitas": data["nomor_identitas"]})
+    #         if existing_user:
+    #             st.error("NIK sudah terdaftar. Silakan gunakan NIK lain.")
+    #             return False
+            
+    #         # Simpan data ke database
+    #         result = collection.insert_one(data)
+            
+    #         # Update session state untuk pasien
+    #         if "pasien_auth" not in st.session_state:
+    #             st.session_state["pasien_auth"] = {}
+    #         if "pasien_list" not in st.session_state:
+    #             st.session_state["pasien_list"] = []
+            
+    #         # Simpan ke session state dengan format baru
+    #         st.session_state["pasien_list"].append({
+    #             "_id": str(result.inserted_id),  # Simpan ObjectId sebagai string
+    #             "Nomor Identitas": data["nomor_identitas"],
+    #             "Nama Lengkap": data["nama_lengkap"],
+    #             "Tanggal Lahir": data["tanggal_lahir"],
+    #             "Jenis Kelamin": data["jenis_kelamin"],
+    #             "Role": "pasien",
+    #             "Tanggal Dibuat": data["tanggal_dibuat"]
+    #         })
+            
+    #         return True
+            
+    #     except Exception as e:
+    #         st.error(f"Error menyimpan data ke database: {e}")
+    #         return False
+    
+    def show(self):
+        st.markdown(load_css(), unsafe_allow_html=True)
+        
+        # Header
+        st.markdown("<h2>Sistem Dashboard Gait Analysis</h2>", unsafe_allow_html=True)
+        st.markdown("<p class='subtitle'>Silahkan isi form pendaftaran pasien dibawah ini dengan benar</p>", unsafe_allow_html=True)
+        
+        # Form registrasi
+        with st.form("register_form", clear_on_submit=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                nomor_identitas = st.text_input("NIK", max_chars=16, key="reg_nik", placeholder="Masukkan NIK anda")
+                nama_lengkap = st.text_input("Nama Lengkap", key="reg_nama", placeholder="Masukkan nama lengkap")
+                password = st.text_input("Password", type="password", key="reg_password", placeholder="Buat password")
+                
+            with col2:
+                tanggal_lahir = st.date_input(
+                    "Tanggal Lahir", 
+                    min_value=date(1900, 1, 1), 
+                    max_value=date.today(),
+                    value=None,
+                    key="reg_ttl"
+                )
+                jenis_kelamin = st.selectbox(
+                    "Jenis Kelamin", 
+                    ["Laki-laki", "Perempuan"], 
+                    key="reg_jk"
+                )
+            
+            # Submit button
+            col_btn1, col_btn2, col_btn3 = st.columns([1, 2, 1])
+            with col_btn2:
+                submitted = st.form_submit_button("Daftar Sekarang", use_container_width=True)
+            
+            if submitted:
+                if nomor_identitas and nama_lengkap and password:
+                    errors = []
+                    # Validasi nomor_identitas
+                    if not nomor_identitas.isdigit():
+                        errors.append("NIK harus berupa angka (tidak boleh huruf).")
+                    # Validasi nik harus 16 digit
+                    if len(nomor_identitas) != 16:
+                        errors.append("NIK harus terdiri dari 16 digit.")                        
+                    # Validasi nama lengkap
+                    if any(char.isdigit() for char in nama_lengkap):
+                        errors.append("Nama lengkap harus berupa huruf dan tidak boleh mengandung angka.")
+                    if not tanggal_lahir:
+                        errors.append("Tanggal lahir wajib diisi.")
+                    
+                    # CEK ADA ERROR ATAU TIDAK
+                    if errors:
+                        for err in errors:
+                            st.error(err)
+                        return
+                        
+                    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+                    registration_data = {
+                        "nomor_identitas": nomor_identitas,  # Ganti dari user_id
+                        "nama_lengkap": nama_lengkap,
+                        "password": hashed_password.decode('utf-8'),  # simpan hash
+                        "role": "pasien",
+                        "tanggal_lahir": tanggal_lahir.strftime("%d-%m-%Y"),
+                        "jenis_kelamin": jenis_kelamin,
+                        "tanggal_dibuat": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    }
+                    
+                    if self._save_registration_to_db(registration_data):
+                        st.success("Pendaftaran berhasil! Mengarahkan ke halaman login...")
+                        time.sleep(2)
+                        st.session_state.show_register = False
+                        st.rerun()
+                else:
+                    st.warning("Mohon isi semua kolom.")
+
+        # Tombol kembali ke login
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("Kembali ke Halaman Login", use_container_width=True):
+                st.session_state.show_register = False
+                st.rerun()
+        
+        # Footer
+        st.markdown("<p class='footer'>Dengan mendaftar, Anda menyetujui Kebijakan Privasi & Syarat Layanan sistem GAIT ini.</p>", 
+                   unsafe_allow_html=True)
