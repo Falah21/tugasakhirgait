@@ -8,6 +8,7 @@
 # from bson import ObjectId
 import streamlit as st
 from datetime import datetime
+from css_style import load_css
 from database.mongodb import get_collection
 from services.auth_service import hash_password
 from services.bmi_service import calculate_bmi, classify_bmi
