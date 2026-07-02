@@ -95,6 +95,7 @@ def input_data_gait_pasien():
                 rows.append(row)
 
             st.session_state.norm_kinematics_df = pd.DataFrame(rows)
+            st.session_state.uploaded_patient_data = processed_data
             
             examination_data = {
                 'pasien_id': ObjectId(pasien_object_id),
