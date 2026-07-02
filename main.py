@@ -9,7 +9,7 @@ except:
     pass
 from pages_admin.admin import AdminPage
 from pages_pasien.pasien_page import PasienPage
-from pages_dokter.dokter_page import DokterPage
+from pages_dokter.dokter import DokterPage
 
 st.set_page_config(page_title="Sistem Dashboard Gait Analysis", page_icon="⛨", layout="wide")
 
