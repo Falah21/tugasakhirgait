@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 from bson import ObjectId
@@ -601,7 +602,7 @@ def _show_detail_visualization(kinematic_data, pasien_object_id, tanggal_pemerik
         _show_ai_summaries_for_detail(pasien_object_id, tanggal_pemeriksaan)
 
 def _show_ai_summaries_for_detail(pasien_object_id, tanggal_pemeriksaan):
-    from services.ai_summary_service import get_latest_ai_summary
+    from services.ai_summary import get_latest_ai_summary
     
     summary = get_latest_ai_summary(pasien_object_id, tanggal_pemeriksaan)
     
