@@ -7,9 +7,10 @@
 # import time
 # from bson import ObjectId
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, date
+import time
 from css_style import load_css
-from database.mongodb import get_collection
+from database.mongodb import get_mongo_client
 from services.auth_service import hash_password
 from services.bmi_service import calculate_bmi, classify_bmi
 
@@ -19,43 +20,43 @@ class RegisterPage:
         # Inisialisasi session state untuk register
         st.session_state.setdefault("show_register", False)
     
-    # def _save_registration_to_db(self, data):
-    #     try:
-    #         client = get_mongo_client()
-    #         db = client['tugasakhir']
-    #         collection = db['users']
+    def _save_registration_to_db(self, data):
+        try:
+            client = get_mongo_client()
+            db = client['tugasakhir']
+            collection = db['users']
             
-    #         # Cek apakah nomor_identitas sudah ada
-    #         existing_user = collection.find_one({"nomor_identitas": data["nomor_identitas"]})
-    #         if existing_user:
-    #             st.error("NIK sudah terdaftar. Silakan gunakan NIK lain.")
-    #             return False
+            # Cek apakah nomor_identitas sudah ada
+            existing_user = collection.find_one({"nomor_identitas": data["nomor_identitas"]})
+            if existing_user:
+                st.error("NIK sudah terdaftar. Silakan gunakan NIK lain.")
+                return False
             
-    #         # Simpan data ke database
-    #         result = collection.insert_one(data)
+            # Simpan data ke database
+            result = collection.insert_one(data)
             
-    #         # Update session state untuk pasien
-    #         if "pasien_auth" not in st.session_state:
-    #             st.session_state["pasien_auth"] = {}
-    #         if "pasien_list" not in st.session_state:
-    #             st.session_state["pasien_list"] = []
+            # Update session state untuk pasien
+            if "pasien_auth" not in st.session_state:
+                st.session_state["pasien_auth"] = {}
+            if "pasien_list" not in st.session_state:
+                st.session_state["pasien_list"] = []
             
-    #         # Simpan ke session state dengan format baru
-    #         st.session_state["pasien_list"].append({
-    #             "_id": str(result.inserted_id),  # Simpan ObjectId sebagai string
-    #             "Nomor Identitas": data["nomor_identitas"],
-    #             "Nama Lengkap": data["nama_lengkap"],
-    #             "Tanggal Lahir": data["tanggal_lahir"],
-    #             "Jenis Kelamin": data["jenis_kelamin"],
-    #             "Role": "pasien",
-    #             "Tanggal Dibuat": data["tanggal_dibuat"]
-    #         })
+            # Simpan ke session state dengan format baru
+            st.session_state["pasien_list"].append({
+                "_id": str(result.inserted_id),  # Simpan ObjectId sebagai string
+                "Nomor Identitas": data["nomor_identitas"],
+                "Nama Lengkap": data["nama_lengkap"],
+                "Tanggal Lahir": data["tanggal_lahir"],
+                "Jenis Kelamin": data["jenis_kelamin"],
+                "Role": "pasien",
+                "Tanggal Dibuat": data["tanggal_dibuat"]
+            })
             
-    #         return True
+            return True
             
-    #     except Exception as e:
-    #         st.error(f"Error menyimpan data ke database: {e}")
-    #         return False
+        except Exception as e:
+            st.error(f"Error menyimpan data ke database: {e}")
+            return False
     
     def show(self):
         st.markdown(load_css(), unsafe_allow_html=True)
@@ -106,6 +107,8 @@ class RegisterPage:
                         errors.append("Nama lengkap harus berupa huruf dan tidak boleh mengandung angka.")
                     if not tanggal_lahir:
                         errors.append("Tanggal lahir wajib diisi.")
+                    if len(password) < 6:
+                        errors.append("Password minimal 6 karakter.")
                     
                     # CEK ADA ERROR ATAU TIDAK
                     if errors:
@@ -113,11 +116,11 @@ class RegisterPage:
                             st.error(err)
                         return
                         
-                    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+                    hashed_password = hash_password(password)
                     registration_data = {
                         "nomor_identitas": nomor_identitas,  # Ganti dari user_id
                         "nama_lengkap": nama_lengkap,
-                        "password": hashed_password.decode('utf-8'),  # simpan hash
+                        "password": hashed_password,  # simpan hash
                         "role": "pasien",
                         "tanggal_lahir": tanggal_lahir.strftime("%d-%m-%Y"),
                         "jenis_kelamin": jenis_kelamin,
