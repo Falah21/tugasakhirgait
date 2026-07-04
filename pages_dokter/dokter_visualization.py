@@ -74,15 +74,16 @@ def calculate_bounds_from_normal_data(filtered_df):
         if joint in filtered_df.columns:
             joint_values = pd.DataFrame(filtered_df[joint].tolist())
             mean_values = joint_values.mean(axis=0).values
-            std_values = joint_values.std(axis=0).values
-            upper_bound = mean_values + (2 * std_values)
-            lower_bound = mean_values - (2 * std_values)
+            se_values = joint_values.std(axis=0).values / np.sqrt(joint_values.shape[0])
+            upper_bound = mean_values + se_values
+            lower_bound = mean_values - se_values
             bounds[joint] = {
                 'upper': np.mean(upper_bound),
                 'lower': np.mean(lower_bound),
                 'upper_by_cycle': upper_bound.tolist(),
                 'lower_by_cycle': lower_bound.tolist(),
-                'mean_by_cycle': mean_values.tolist()
+                'mean_by_cycle': mean_values.tolist(),
+                'se_by_cycle': se_values.tolist()
             }
     return bounds
 
