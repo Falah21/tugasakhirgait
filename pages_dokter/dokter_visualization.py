@@ -82,8 +82,7 @@ def calculate_bounds_from_normal_data(filtered_df):
                 'lower': np.mean(lower_bound),
                 'upper_by_cycle': upper_bound.tolist(),
                 'lower_by_cycle': lower_bound.tolist(),
-                'mean_by_cycle': mean_values.tolist(),
-                'se_by_cycle': se_values.tolist()
+                'mean_by_cycle': mean_values.tolist()
             }
     return bounds
 
