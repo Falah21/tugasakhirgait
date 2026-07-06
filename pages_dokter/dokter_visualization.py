@@ -1271,8 +1271,8 @@ def show_ai_generation_section():
             - Sebutkan 3–4 temuan paling signifikan
             
             2. Tabel Ringkasan Deviasi
-            | Sendi | Sisi | Fase Paling Bermasalah | Tingkat Deviasi | Hasil |
-            |-------|------|------------------------|-----------------|-------|
+            | Sendi | Sisi | Fase Paling Bermasalah | Tingkat Deviasi (Angka MAE) | Hasil |
+            |-------|------|------------------------|-----------------------------|-------|
             Isi maksimal 5 baris.
             
             3. Interpretasi Klinis
