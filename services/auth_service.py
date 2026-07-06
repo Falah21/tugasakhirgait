@@ -7,7 +7,7 @@ from bson import ObjectId
 def hash_password(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
   
-# Verifikasi password dengan bcrypt
+# Verifikasi password input dengan pw yg udh di hash
 def verify_password(password, hashed_password):
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
@@ -38,6 +38,7 @@ def authenticate_user(nomor_identitas, password, role=None):
         print(f"Authentication error: {e}")
         return None
 
+# Mengambil data user berdasarkan ID
 def get_user_by_id(user_id):
     try:
         collection = get_collection('users')
