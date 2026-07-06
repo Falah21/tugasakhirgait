@@ -9,6 +9,7 @@ from models.gait_patient import GaitAnalysisData
 from services.ai_summary import gemini_model, generate_ai_summary, save_ai_summary
 from bson import ObjectId
 
+# Mengembalikan nama fase gait berdasarkan persentase siklus gait
 def get_gait_phase(percentage):
     if 0 <= percentage <= 2:
         return "Initial Contact"
@@ -29,6 +30,7 @@ def get_gait_phase(percentage):
     else:
         return "Unknown"
 
+# Mengelompokkan indeks persentase ke dalam fase-fase gait
 def get_phase_indices(percentage_list):
     phases = {
         'Initial Contact (0-2%)': (0, 2),
@@ -47,6 +49,7 @@ def get_phase_indices(percentage_list):
         phase_indices[phase] = indices
     return phase_indices
 
+# Menghitung nilai MAE per fase gait
 def calculate_mae_per_phase(patient_values, normal_values, phase_indices):
     mae_per_phase = {}
     for phase, indices in phase_indices.items():
@@ -57,6 +60,7 @@ def calculate_mae_per_phase(patient_values, normal_values, phase_indices):
             mae_per_phase[phase] = mae
     return mae_per_phase
 
+# Menghitung upper dan lower bound dari data normal
 def calculate_bounds_from_normal_data(filtered_df):
     bounds = {}
     joints = {
@@ -86,6 +90,7 @@ def calculate_bounds_from_normal_data(filtered_df):
             }
     return bounds
 
+# Membuat grafik untuk data pelvis (kiri atau kanan)
 def create_pelvis_figure(data, title, color):
     fig = go.Figure()
     mean_col = "Mean_Lpelvis" if "Mean_Lpelvis" in data.columns else "Mean_Rpelvis"
@@ -140,6 +145,7 @@ def create_pelvis_figure(data, title, color):
     )
     return fig
 
+# Membuat grafik Plotly untuk sendi (knee, hip, ankle)
 def create_joint_figure(data, title, color):
     mean_col = [col for col in data.columns if col.startswith('Mean_')][0]
     std_col = [col for col in data.columns if col.startswith('std_')][0]
@@ -193,6 +199,7 @@ def create_joint_figure(data, title, color):
     )
     return fig
 
+# membuat semua visualisasi dan analisis gait
 def create_visualizations(filtered_df, norm_kinematics_df):
     percentage_cycle = list(range(101))
     phase_indices = get_phase_indices(percentage_cycle)
@@ -358,8 +365,8 @@ def create_visualizations(filtered_df, norm_kinematics_df):
     st.session_state.phase_indices = phase_indices
 
     # Buat Figure
-    fig1 = create_pelvis_figure(lpelvis, "Left Pelvis", 'orange')
-    fig2 = create_pelvis_figure(rpelvis, "Right Pelvis", 'dark blue')
+    fig1 = create_joint_figure(lpelvis, "Left Pelvis", 'orange')
+    fig2 = create_joint_figure(rpelvis, "Right Pelvis", 'dark blue')
     fig3 = create_joint_figure(lknee, "Left Knee", 'orange')
     fig4 = create_joint_figure(rknee, "Right Knee", 'dark blue')
     fig5 = create_joint_figure(lhip, "Left Hip", 'orange')
