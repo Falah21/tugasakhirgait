@@ -4,6 +4,7 @@ import streamlit as st
 
 # GaitAnalysisData untuk Data Normal
 class GaitAnalysisDataNormal:
+    # Inisialisas objek
     def __init__(self, content, usia, jenis_kelamin):
         try:
             self.df = pd.read_excel(io.BytesIO(content), sheet_name=[0, 1]) # Membaca file Excel
@@ -21,17 +22,20 @@ class GaitAnalysisDataNormal:
         self.body_measurements = self.extract_body_measurements()
         self.norm_kinematics = self.extract_norm_kinematics()
 
+    # Menghapus baris kosong
     def clean_data(self):
         cleaned_data = self.suin.dropna(how='all')
         cleaned_data.reset_index(drop=True, inplace=True)
         return cleaned_data
 
+    # Memproses data kinematika dengan mengambil parameter sudut sumbu X
     def process_normkin(self):
         column_namesX = [col for col in self.normkin.columns if col.endswith('X')]
         normkin = self.normkin.loc[:, column_namesX]
         normkin.insert(0, "Percentage of Gait Cycle", self.df[1].iloc[:, 0].tolist())
         return normkin
 
+    # Ekstrak informasi trial
     def extract_trial_info(self):
         return {
             "Trial Information": {
@@ -39,6 +43,7 @@ class GaitAnalysisDataNormal:
             }
         }
 
+    # Ekstrak parameter subjek
     def extract_subject_params(self, usia, jenis_kelamin):
         bmi = (self.cleaned_data.iloc[4, 2])/((self.cleaned_data.iloc[5, 2]/1000)**2)
         bmi_class = (
@@ -60,6 +65,7 @@ class GaitAnalysisDataNormal:
             }
         }
 
+    # Data antropometri
     def extract_body_measurements(self):
         return {
             "Body Measurements": {
@@ -78,6 +84,7 @@ class GaitAnalysisDataNormal:
             }
         }
 
+    # Data kinematika dan validasi parameter
     def extract_norm_kinematics(self):
         required_cols = [
         "Percentage of Gait Cycle", "LPelvisAngles_X", "RPelvisAngles_X",
@@ -107,6 +114,7 @@ class GaitAnalysisDataNormal:
                 }
             }
 
+    # Menggabungkan seluruh hasil ekstrak
     def to_dict(self):
         return {
             **self.trial_info,
