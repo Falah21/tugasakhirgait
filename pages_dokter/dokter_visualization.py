@@ -6,7 +6,7 @@ import plotly.express as px
 from datetime import datetime
 from database.mongodb import get_collection
 from models.gait_patient import GaitAnalysisData
-from services.ai_summary import gemini_model, generate_ai_summary, save_ai_summary
+from services.ai_summary import get_gemini_model, generate_ai_summary, save_ai_summary
 from bson import ObjectId
 
 # Mengembalikan nama fase gait berdasarkan persentase siklus gait
@@ -1188,7 +1188,7 @@ def show_ai_generation_section():
             st.stop()
         
         if generate_button:
-            model = gemini_model
+            model = get_gemini_model()
             if model is None:
                 st.error("Fitur AI tidak tersedia karena API key Gemini tidak dikonfigurasi.")
                 return
