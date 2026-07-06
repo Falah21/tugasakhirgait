@@ -4,18 +4,18 @@ from datetime import datetime
 from database.mongodb import get_collection
 from bson import ObjectId
 
-# Konfigurasi Gemini API
+# Konfigurasi Gemini API dengan API Key
 if "GEMINI_API_KEY" in st.secrets:
     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
     gemini_model = genai.GenerativeModel('gemini-2.5-flash')
 else:
     gemini_model = None
 
-# Mendapatkan model Gemini yang sudah dikonfigurasi
+# Mengembalikan model Gemini yang sudah dikonfigurasi
 def get_gemini_model():
     return gemini_model
 
-# Generate AI summary menggunakan Gemini
+# Membuat ringkasan AI
 def generate_ai_summary(prompt):
     try:
         if gemini_model is None:
@@ -26,17 +26,17 @@ def generate_ai_summary(prompt):
     except Exception as e:
         return None, str(e)
 
-# Simpan Ai summary ke database
+# Menyimpan Ai summary ke database
 def save_ai_summary(data):
     try:
         collection = get_collection('ai_summaries')
         result = collection.insert_one(data)
-        return result.inserted_id is not None
+        return result.inserted_id is not None # ID dokumen yang baru saja berhasil disimpan ke MongoDB.
     except Exception as e:
         print(f"Error saving AI summary: {e}")
         return False
 
-# Ambil AI summary dari database
+# Ambil daftar AI Summary berdasarkan pasien dan tanggal pemeriksaan
 def get_ai_summaries(pasien_object_id, tanggal_pemeriksaan=None):
     try:
         collection = get_collection('ai_summaries')
