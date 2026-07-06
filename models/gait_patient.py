@@ -61,6 +61,7 @@ class GaitAnalysisData:
             }
         }
 
+    # Mengekstrak data kinematika gait pasien dalam bentuk list
     def extract_norm_kinematics(self):
         return {
             "Norm Kinematics": {
