@@ -1401,13 +1401,23 @@ def show_ai_generation_section():
             Isi maksimal 5 baris.
             
             3. Interpretasi Klinis
-            Buat dalam bentuk bullet point per sendi.
-            - Untuk setiap sendi, jelaskan:
+            Buat dalam satu bullet point untuk setiap sendi dan sisi.
+            - Jangan menggabungkan beberapa sendi dalam satu bullet.
+            - Urutan penulisan harus sebagai berikut:
+              - Pelvis Kanan
+              - Pelvis Kiri
+              - Hip Kanan
+              - Hip Kiri
+              - Knee Kanan
+              - Knee Kiri
+              - Ankle Kanan
+              - Ankle Kiri
+            - pada setiap bullet, jelaskan:
                - tingkat deviasi berdasarkan MAE
                - apakah berada di luar rentang normal berdasarkan lower bound dan upper bound
                - apakah pola gerakan masih menyerupai baseline, sedikit berbeda, atau berbeda jelas dibandingkan baseline
                - implikasi fungsional dari kombinasi ketiga informasi tersebut
-            - Gunakan istilah observasional seperti:
+            - Gunakan istilah seperti:
                - lebih
                - kurang
                - cenderung meningkat
@@ -1417,6 +1427,7 @@ def show_ai_generation_section():
                - berbeda jelas dibandingkan baseline
             - Hindari diagnosis medis atau kesimpulan pasti
             - Fokus pada pola gerak dan fungsi gait.
+            - Jangan membuat bullet berdasarkan kelompok ekstremitas atau menggabungkan beberapa sendi menjadi satu paragraf.
             
             4. Kesimpulan
             Buat dalam bentuk bullet point singkat.
