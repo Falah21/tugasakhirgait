@@ -1385,10 +1385,11 @@ def show_ai_generation_section():
             - Prioritaskan temuan dengan MAE tinggi dan berada di luar rentang normal
             - Gunakan format **bold** untuk menyorot sendi bermasalah, fase gait kritis, dan tingkat deviasi
             - Jangan menggunakan bold secara berlebihan
-            - Selain menggunakan MAE dan batas normal, evaluasi juga kesesuaian pola gerakan terhadap kurva baseline.
-            - Perhatikan apakah pola perubahan sudut sendi sepanjang gait cycle mengikuti pola baseline atau menunjukkan penyimpangan bentuk kurva.
-            - Jika pola gerakan secara umum mengikuti baseline meskipun terdapat deviasi kecil, sebutkan bahwa pola gerakan masih konsisten dengan pola normal.
-            - Jangan menyatakan adanya gangguan apabila pola gerakan masih menyerupai baseline dan seluruh parameter masih berada dalam rentang normal.
+            - Gunakan informasi pola gerakan (phase_pattern_summary) sebagai dasar interpretasi selain MAE dan batas normal.
+            - Interpretasikan apakah pola gerakan masih menyerupai baseline, sedikit berbeda, atau berbeda jelas dibandingkan baseline.
+            - Jika pola gerakan masih menyerupai baseline, sebutkan bahwa karakteristik gerakan relatif konsisten dengan pola normal meskipun terdapat deviasi kecil.
+            - Jika pola gerakan berbeda jelas dari baseline, prioritaskan pembahasan pada interpretasi klinis.
+            - Jangan hanya berfokus pada besarnya MAE; pertimbangkan juga kesesuaian bentuk pola gerakan terhadap baseline.
             
             STRUKTUR:
             1. Highlight Temuan Utama:
@@ -1401,21 +1402,21 @@ def show_ai_generation_section():
             
             3. Interpretasi Klinis
             Buat dalam bentuk bullet point per sendi.
-            - Jelaskan pola gerakan dibandingkan baseline dengan bahasa yang mudah dipahami.
-            - Hindari istilah biomekanika yang terlalu teknis seperti "fleksi berlebihan", "ekstensi berlebihan", atau "dorsifleksi berlebihan", kecuali benar-benar diperlukan.
-            - Fokus menjelaskan apakah pola gerakan:
-              - masih menyerupai baseline,
-              - mulai menyimpang pada fase tertentu,
-              - berbeda cukup jelas dibanding baseline.
-            - Gunakan istilah seperti:
-              - cenderung meningkat
-              - cenderung menurun
-              - relatif stabil
-              - sedikit berbeda
+            - Untuk setiap sendi, jelaskan:
+               - tingkat deviasi berdasarkan MAE
+               - apakah berada di luar rentang normal berdasarkan lower bound dan upper bound
+               - apakah pola gerakan masih menyerupai baseline, sedikit berbeda, atau berbeda jelas dibandingkan baseline
+               - implikasi fungsional dari kombinasi ketiga informasi tersebut
+            - Gunakan istilah observasional seperti:
+               - lebih
+               - kurang
+               - cenderung meningkat
+               - cenderung menurun
+               - masih menyerupai pola normal
+               - sedikit berbeda dari baseline
+               - berbeda jelas dibandingkan baseline
             - Hindari diagnosis medis atau kesimpulan pasti
-            - Fokus pada implikasi terhadap pola gerak dan fungsi gait
-            - Jelaskan perubahan pola gerakan secara deskriptif tanpa memberikan diagnosis.
-            - Sertakan jika terdapat parameter yang berada di luar rentang normal
+            - Fokus pada pola gerak dan fungsi gait.
             
             4. Kesimpulan
             Buat dalam bentuk bullet point singkat.
