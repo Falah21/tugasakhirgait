@@ -1401,20 +1401,21 @@ def show_ai_generation_section():
             
             3. Interpretasi Klinis
             Buat dalam bentuk bullet point per sendi.
-            - Gunakan istilah observasional seperti:
-              - lebih
-              - kurang
+            - Jelaskan pola gerakan dibandingkan baseline dengan bahasa yang mudah dipahami.
+            - Hindari istilah biomekanika yang terlalu teknis seperti "fleksi berlebihan", "ekstensi berlebihan", atau "dorsifleksi berlebihan", kecuali benar-benar diperlukan.
+            - Fokus menjelaskan apakah pola gerakan:
+              - masih menyerupai baseline,
+              - mulai menyimpang pada fase tertentu,
+              - berbeda cukup jelas dibanding baseline.
+            - Gunakan istilah seperti:
               - cenderung meningkat
               - cenderung menurun
+              - relatif stabil
+              - sedikit berbeda
             - Hindari diagnosis medis atau kesimpulan pasti
-            - Fokus pada pola gerak dan fungsi gait
-            - Jelaskan apakah gerakan tampak lebih atau kurang dibanding pola normal
-            - Sertakan jika parameter berada di luar rentang normal
-            - Evaluasi pola gerakan setiap sendi terhadap baseline, apakah secara umum mengikuti kurva atau ada fase yang menyimpang
-            - Sebutkan apakah pola gerakan:
-              - mengikuti pola baseline,
-              - memiliki deviasi ringan,
-              - menunjukkan perubahan bentuk kurva.
+            - Fokus pada implikasi terhadap pola gerak dan fungsi gait
+            - Jelaskan perubahan pola gerakan secara deskriptif tanpa memberikan diagnosis.
+            - Sertakan jika terdapat parameter yang berada di luar rentang normal
             
             4. Kesimpulan
             Buat dalam bentuk bullet point singkat.
