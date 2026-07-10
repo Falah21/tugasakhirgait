@@ -1265,6 +1265,10 @@ def show_ai_generation_section():
             - Prioritaskan temuan dengan MAE tinggi dan berada di luar rentang normal
             - Gunakan format **bold** untuk menyorot sendi bermasalah, fase gait kritis, dan tingkat deviasi
             - Jangan menggunakan bold secara berlebihan
+            - Selain menggunakan MAE dan batas normal, evaluasi juga kesesuaian pola gerakan terhadap kurva baseline.
+            - Perhatikan apakah pola perubahan sudut sendi sepanjang gait cycle mengikuti pola baseline atau menunjukkan penyimpangan bentuk kurva.
+            - Jika pola gerakan secara umum mengikuti baseline meskipun terdapat deviasi kecil, sebutkan bahwa pola gerakan masih konsisten dengan pola normal.
+            - Jangan menyatakan adanya gangguan apabila pola gerakan masih menyerupai baseline dan seluruh parameter masih berada dalam rentang normal.
             
             STRUKTUR:
             1. Highlight Temuan Utama:
@@ -1286,6 +1290,11 @@ def show_ai_generation_section():
             - Fokus pada pola gerak dan fungsi gait
             - Jelaskan apakah gerakan tampak lebih atau kurang dibanding pola normal
             - Sertakan jika parameter berada di luar rentang normal
+            - Evaluasi pola gerakan setiap sendi terhadap baseline.
+            - Sebutkan apakah pola gerakan:
+              - mengikuti pola baseline,
+              - memiliki deviasi ringan,
+              - menunjukkan perubahan bentuk kurva.
             
             4. Kesimpulan
             Buat dalam bentuk bullet point singkat.
