@@ -90,6 +90,27 @@ def calculate_bounds_from_normal_data(filtered_df):
             }
     return bounds
 
+def calculate_phase_averages(patient_values, normal_values, phase_indices):
+    phase_data = {}
+    
+    for phase, indices in phase_indices.items():
+        if indices:
+            # Rata-rata pasien per fase
+            patient_phase_values = [patient_values[i] for i in indices if i < len(patient_values)]
+            patient_avg = np.mean(patient_phase_values) if patient_phase_values else 0
+            
+            # Rata-rata normal per fase
+            normal_phase_values = [normal_values[i] for i in indices if i < len(normal_values)]
+            normal_avg = np.mean(normal_phase_values) if normal_phase_values else 0
+            
+            phase_data[phase] = {
+                'patient_avg': patient_avg,
+                'normal_avg': normal_avg,
+                'difference': patient_avg - normal_avg
+            }
+    
+    return phase_data
+
 # Membuat grafik untuk data pelvis (kiri atau kanan)
 def create_pelvis_figure(data, title, color):
     fig = go.Figure()
@@ -1158,7 +1179,105 @@ def show_ai_generation_section():
 
     patient_saved_key = f'saved_summary_content_{current_patient_key}'
     patient_ai_generated_key = f'ai_summaries_generated_{current_patient_key}'
-    
+
+    # Tambahkan perhitungan rata-rata per fase
+    if 'norm_kinematics_df' in st.session_state and 'filtered_normal_df' in st.session_state:
+        patient_df = st.session_state.norm_kinematics_df
+        filtered_df = st.session_state.filtered_normal_df
+        percentage_cycle = list(range(101))
+        phase_indices = st.session_state.phase_indices
+        
+        # Hitung rata-rata normal
+        normal_means = {}
+        normal_stds = {}  # Tambahkan standar deviasi
+        for joint in ['LPelvisAngles_X', 'RPelvisAngles_X', 'LKneeAngles_X', 
+                      'RKneeAngles_X', 'LHipAngles_X', 'RHipAngles_X', 
+                      'LAnkleAngles_X', 'RAnkleAngles_X']:
+            if joint in filtered_df.columns:
+                joint_values = pd.DataFrame(filtered_df[joint].tolist())
+                normal_means[joint] = joint_values.mean(axis=0).values
+                normal_stds[joint] = joint_values.std(axis=0).values  # Untuk melihat variabilitas
+        
+        # Buat summary pola gerakan per fase (tanpa status otomatis)
+        phase_pattern_summary = "\nPOLA GERAKAN PER FASE GAIT (Nilai Rata-rata):\n"
+        phase_pattern_summary += "Data ini menunjukkan nilai rata-rata sudut sendi pasien dibandingkan dengan nilai normal pada setiap fase gait.\n\n"
+        
+        joints_mapping = {
+            'LPelvisAngles_X': 'Pelvis Kiri',
+            'RPelvisAngles_X': 'Pelvis Kanan',
+            'LKneeAngles_X': 'Knee Kiri',
+            'RKneeAngles_X': 'Knee Kanan',
+            'LHipAngles_X': 'Hip Kiri',
+            'RHipAngles_X': 'Hip Kanan',
+            'LAnkleAngles_X': 'Ankle Kiri',
+            'RAnkleAngles_X': 'Ankle Kanan'
+        }
+        
+        for joint_col, joint_name in joints_mapping.items():
+            if joint_col in patient_df.columns and joint_col in normal_means:
+                patient_values = patient_df[joint_col].values
+                normal_values = normal_means[joint_col]
+                std_values = normal_stds.get(joint_col, np.zeros_like(normal_values))
+                
+                phase_pattern_summary += f"\n{joint_name}:\n"
+                
+                for phase, indices in phase_indices.items():
+                    if indices:
+                        # Ambil nilai untuk fase ini
+                        patient_phase = [patient_values[i] for i in indices if i < len(patient_values)]
+                        normal_phase = [normal_values[i] for i in indices if i < len(normal_values)]
+                        std_phase = [std_values[i] for i in indices if i < len(std_values)]
+                        
+                        if patient_phase and normal_phase:
+                            patient_avg = np.mean(patient_phase)
+                            normal_avg = np.mean(normal_phase)
+                            std_avg = np.mean(std_phase)
+                            diff = patient_avg - normal_avg
+                            
+                            # Tentukan apakah di luar rentang normal (berdasarkan standar deviasi)
+                            outside_normal = "Ya" if abs(diff) > std_avg else "Tidak"
+                            
+                            phase_pattern_summary += f"  - {phase}:\n"
+                            phase_pattern_summary += f"      Pasien: {patient_avg:.1f}°\n"
+                            phase_pattern_summary += f"      Normal: {normal_avg:.1f}° ± {std_avg:.1f}°\n"
+                            phase_pattern_summary += f"      Selisih: {diff:+.1f}°\n"
+                            phase_pattern_summary += f"      Di luar rentang normal: {outside_normal}\n"
+        
+        # Tambahkan informasi tren pola secara keseluruhan
+        phase_pattern_summary += "\nTREN POLA GERAKAN (Perubahan dari fase ke fase):\n"
+        phase_pattern_summary += "Data ini menunjukkan bagaimana sudut sendi berubah sepanjang siklus gait.\n"
+        
+        for joint_col, joint_name in joints_mapping.items():
+            if joint_col in patient_df.columns and joint_col in normal_means:
+                patient_values = patient_df[joint_col].values
+                normal_values = normal_means[joint_col]
+                
+                phase_pattern_summary += f"\n{joint_name}:\n"
+                
+                # Hitung perubahan dari fase ke fase (misal dari Initial Contact ke Terminal Swing)
+                phase_names = list(phase_indices.keys())
+                for i in range(len(phase_names) - 1):
+                    phase_now = phase_names[i]
+                    phase_next = phase_names[i+1]
+                    
+                    idx_now = phase_indices[phase_now]
+                    idx_next = phase_indices[phase_next]
+                    
+                    if idx_now and idx_next:
+                        patient_now = np.mean([patient_values[j] for j in idx_now if j < len(patient_values)])
+                        patient_next = np.mean([patient_values[j] for j in idx_next if j < len(patient_values)])
+                        normal_now = np.mean([normal_values[j] for j in idx_now if j < len(normal_values)])
+                        normal_next = np.mean([normal_values[j] for j in idx_next if j < len(normal_values)])
+                        
+                        change_patient = patient_next - patient_now
+                        change_normal = normal_next - normal_now
+                        diff_change = change_patient - change_normal
+                        
+                        phase_pattern_summary += f"  - {phase_now} → {phase_next}:\n"
+                        phase_pattern_summary += f"      Perubahan Pasien: {change_patient:+.1f}°\n"
+                        phase_pattern_summary += f"      Perubahan Normal: {change_normal:+.1f}°\n"
+                        phase_pattern_summary += f"      Selisih perubahan: {diff_change:+.1f}°\n"
+        
     phases_order = [
         'Initial Contact (0-2%)',
         'Loading Response (2-10%)',
@@ -1240,7 +1359,8 @@ def show_ai_generation_section():
                 bound = bounds_data.get(key, {'upper': 0, 'lower': 0})
                 bounds_summary += f"- {name}: Upper={bound['upper']:.2f}°, Lower={bound['lower']:.2f}°\n"
             
-            full_data = mae_summary + mae_phases_summary + bounds_summary
+                    # Tambahkan ke full_data
+            full_data = mae_summary + mae_phases_summary + bounds_summary + phase_pattern_summary
 
             final_prompt = f"""
             Anda adalah fisioterapis klinis dan analis biomekanika gait.
@@ -1290,7 +1410,7 @@ def show_ai_generation_section():
             - Fokus pada pola gerak dan fungsi gait
             - Jelaskan apakah gerakan tampak lebih atau kurang dibanding pola normal
             - Sertakan jika parameter berada di luar rentang normal
-            - Evaluasi pola gerakan setiap sendi terhadap baseline.
+            - Evaluasi pola gerakan setiap sendi terhadap baseline, apakah secara umum mengikuti kurva atau ada fase yang menyimpang
             - Sebutkan apakah pola gerakan:
               - mengikuti pola baseline,
               - memiliki deviasi ringan,
