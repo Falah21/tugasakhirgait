@@ -41,8 +41,20 @@ def manage_users():
         if filtered_data:
             df_users = pd.DataFrame(filtered_data)
             df_users.insert(0, 'No', range(1, len(df_users) + 1))
-            display_columns = ['No', 'Nomor Identitas', 'Nama Lengkap', 'Role', 'Jenis Kelamin', 'Tanggal Lahir', 'Tanggal Dibuat']
-            df_display = df_users[display_columns]
+            
+            # Tentukan kolom yang akan ditampilkan berdasarkan role
+            if filter_role == "Dokter" or filter_role == "Semua":
+                display_columns = ['No', 'Nomor Identitas', 'Nama Lengkap', 'Role', 'Jenis Kelamin', 'Tanggal Lahir', 
+                                 'Institusi', 'Spesialisasi', 'Tanggal Dibuat']
+            elif filter_role == "Admin":
+                display_columns = ['No', 'Nomor Identitas', 'Nama Lengkap', 'Role', 'Jenis Kelamin', 'Tanggal Lahir', 
+                                 'Institusi', 'Tanggal Dibuat']
+            else:
+                display_columns = ['No', 'Nomor Identitas', 'Nama Lengkap', 'Role', 'Jenis Kelamin', 'Tanggal Lahir', 'Tanggal Dibuat']
+            
+            # Filter kolom yang ada di dataframe
+            available_columns = [col for col in display_columns if col in df_users.columns]
+            df_display = df_users[available_columns]
             st.dataframe(df_display, use_container_width=True, hide_index=True)
         else:
             st.info("Belum ada data pengguna terdaftar")
@@ -62,11 +74,31 @@ def manage_users():
                 jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
                 password = st.text_input("Password", type="password", placeholder="Masukkan password")
             
+            # Field dinamis berdasarkan role
+            if role == "dokter":
+                st.markdown("---")
+                st.markdown("#### Informasi Dokter")
+                col3, col4 = st.columns(2)
+                with col3:
+                    institusi = st.text_input("Institusi / Rumah Sakit", placeholder="Masukkan nama institusi")
+                with col4:
+                    spesialisasi = st.text_input("Spesialisasi Profesi", placeholder="Masukkan spesialisasi (contoh: Spesialis Jantung)")
+            elif role == "admin":
+                st.markdown("---")
+                st.markdown("#### Informasi Admin")
+                institusi = st.text_input("Institusi", placeholder="Masukkan nama institusi")
+                spesialisasi = None
+            else:  # pasien
+                institusi = None
+                spesialisasi = None
+            
             submitted = st.form_submit_button("Tambah Pengguna Baru")
             
             if submitted:
                 if nomor_identitas and nama_lengkap and password:
                     errors = []
+                    
+                    # Validasi role spesifik
                     if role in ["dokter", "admin"]:
                         if not nomor_identitas.isdigit():
                             errors.append(f"NIP untuk {role} harus berupa angka (tidak boleh huruf).")
@@ -82,6 +114,13 @@ def manage_users():
                         errors.append("Nama lengkap harus berupa huruf dan tidak boleh mengandung angka.")
                     if not tanggal_lahir:
                         errors.append("Tanggal lahir wajib diisi.")
+                    
+                    # Validasi field tambahan
+                    if role in ["dokter", "admin"] and not institusi:
+                        errors.append(f"Institusi wajib diisi untuk {role}.")
+                    if role == "dokter" and not spesialisasi:
+                        errors.append("Spesialisasi wajib diisi untuk dokter.")
+                    
                     if errors:
                         for err in errors:
                             st.error(err)
@@ -95,6 +134,13 @@ def manage_users():
                             'jenis_kelamin': jenis_kelamin,
                             'tanggal_dibuat': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         }
+                        
+                        # Tambahkan field tambahan
+                        if role in ["dokter", "admin"]:
+                            user_data['institusi'] = institusi
+                        if role == "dokter":
+                            user_data['spesialisasi'] = spesialisasi
+                        
                         if _add_new_user(user_data):
                             st.success(f"{nama_lengkap} berhasil ditambahkan sebagai {role}!")
                             st.rerun()
@@ -135,8 +181,9 @@ def manage_users():
                             with col_form1:
                                 new_nomor_identitas = st.text_input("Nomor Identitas", value=selected_user.get('Nomor Identitas', ''))
                                 new_nama = st.text_input("Nama Lengkap", value=selected_user.get('Nama Lengkap', ''))
-                                new_role = st.selectbox("Role", ["pasien", "dokter", "admin"], index=["pasien", "dokter", "admin"].index(selected_user.get('Role', 'pasien'))
-                                                        if selected_user.get('Role') in ["pasien", "dokter", "admin"] else 0)
+                                new_role = st.selectbox("Role", ["pasien", "dokter", "admin"], 
+                                                       index=["pasien", "dokter", "admin"].index(selected_user.get('Role', 'pasien'))
+                                                       if selected_user.get('Role') in ["pasien", "dokter", "admin"] else 0)
                                             
                             with col_form2:
                                 tgl_lahir_str = selected_user.get('Tanggal Lahir', '01-01-1990')
@@ -146,9 +193,26 @@ def manage_users():
                                     default_tgl = datetime(1990, 1, 1)
                                 
                                 new_tanggal_lahir = st.date_input("Tanggal Lahir", value=default_tgl)
-                                new_jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"], index=0
-                                                                 if selected_user.get('Jenis Kelamin') == "Laki-laki" else 1)
+                                new_jenis_kelamin = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"], 
+                                                                index=0 if selected_user.get('Jenis Kelamin') == "Laki-laki" else 1)
                                 new_password = st.text_input("Password Baru (kosongkan jika tidak diubah)", type="password")
+                            
+                            # Field tambahan untuk edit
+                            st.markdown("---")
+                            st.markdown("#### Informasi Tambahan")
+                            
+                            # Tampilkan field berdasarkan role
+                            if new_role in ["dokter", "admin"]:
+                                current_institusi = selected_user.get('Institusi', '')
+                                new_institusi = st.text_input("Institusi", value=current_institusi)
+                            else:
+                                new_institusi = None
+                                
+                            if new_role == "dokter":
+                                current_spesialisasi = selected_user.get('Spesialisasi', '')
+                                new_spesialisasi = st.text_input("Spesialisasi Profesi", value=current_spesialisasi)
+                            else:
+                                new_spesialisasi = None
                             
                             if st.form_submit_button("Update Pengguna"):
                                 errors = []
@@ -166,6 +230,11 @@ def manage_users():
                                     errors.append("Nama lengkap harus berupa huruf dan tidak boleh mengandung angka.")
                                 if not new_tanggal_lahir:
                                     errors.append("Tanggal lahir wajib diisi.")
+                                if new_role in ["dokter", "admin"] and not new_institusi:
+                                    errors.append(f"Institusi wajib diisi untuk {new_role}.")
+                                if new_role == "dokter" and not new_spesialisasi:
+                                    errors.append("Spesialisasi wajib diisi untuk dokter.")
+                                
                                 if errors:
                                     for err in errors:
                                         st.error(err)
@@ -177,6 +246,18 @@ def manage_users():
                                         'tanggal_lahir': new_tanggal_lahir.strftime("%d-%m-%Y"),
                                         'jenis_kelamin': new_jenis_kelamin
                                     }
+                                    
+                                    # Tambahkan field tambahan
+                                    if new_role in ["dokter", "admin"]:
+                                        update_data['institusi'] = new_institusi
+                                    if new_role == "dokter":
+                                        update_data['spesialisasi'] = new_spesialisasi
+                                    
+                                    # Hapus field yang tidak relevan jika role berubah
+                                    if new_role != "dokter":
+                                        update_data['spesialisasi'] = None
+                                    if new_role not in ["dokter", "admin"]:
+                                        update_data['institusi'] = None
 
                                     if new_password:
                                         update_data['password'] = new_password
@@ -212,6 +293,12 @@ def manage_users():
                         st.write(f"Role: {selected_user.get('Role')}")
                         st.write(f"Jenis Kelamin: {selected_user.get('Jenis Kelamin')}")
                         st.write(f"Tanggal Lahir: {selected_user.get('Tanggal Lahir')}")
+                        
+                        # Tampilkan informasi tambahan
+                        if selected_user.get('Role') in ['dokter', 'admin']:
+                            st.write(f"Institusi: {selected_user.get('Institusi', '-')}")
+                        if selected_user.get('Role') == 'dokter':
+                            st.write(f"Spesialisasi: {selected_user.get('Spesialisasi', '-')}")
 
                         if selected_user.get('Role') == 'admin':
                             st.error(" **PERINGATAN:** Menghapus akun admin mungkin dapat menyebabkan masalah akses!")
@@ -273,6 +360,13 @@ def _get_all_users():
                 "Jenis Kelamin": user.get('jenis_kelamin', ''),
                 "Tanggal Dibuat": user.get('tanggal_dibuat', '')
             }
+            
+            # Tambahkan field tambahan
+            if user.get('role') in ['dokter', 'admin']:
+                user_data['Institusi'] = user.get('institusi', '')
+            if user.get('role') == 'dokter':
+                user_data['Spesialisasi'] = user.get('spesialisasi', '')
+            
             data.append(user_data)
         
         return data
@@ -301,6 +395,12 @@ def _add_new_user(user_data):
             'tanggal_dibuat': user_data['tanggal_dibuat']
         }
         
+        # Tambahkan field tambahan
+        if user_data.get('role') in ['dokter', 'admin']:
+            new_user['institusi'] = user_data.get('institusi', '')
+        if user_data.get('role') == 'dokter':
+            new_user['spesialisasi'] = user_data.get('spesialisasi', '')
+        
         result = collection.insert_one(new_user)
         st.session_state.pasien_list_initialized = False
         return result.inserted_id is not None
@@ -326,6 +426,12 @@ def _update_user(user_id, update_data):
             update_data['password'] = hash_password(update_data['password'])
         elif 'password' in update_data:
             del update_data['password']
+        
+        # Handle field tambahan
+        if 'institusi' in update_data and update_data['institusi'] is None:
+            del update_data['institusi']
+        if 'spesialisasi' in update_data and update_data['spesialisasi'] is None:
+            del update_data['spesialisasi']
         
         result = collection.update_one(
             {'_id': ObjectId(user_id)},
