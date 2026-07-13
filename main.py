@@ -177,7 +177,7 @@ def main():
         if st.button("Admin", key="btn_admin", use_container_width=True):
             go_to("admin")
     with col2:
-        if st.button("Dokter", key="btn_dokter", use_container_width=True):
+        if st.button("Tenaga Medis", key="btn_dokter", use_container_width=True):
             go_to("dokter")
     with col3:
         if st.button("Pasien", key="btn_pasien", use_container_width=True):
